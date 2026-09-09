@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>쿠키 클리커 : 쿠키 변신 에디션</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="game-container" id="game-container">
+    <!-- 왼쪽: 메인 클릭 영역 및 현재 쿠키 정보 -->
+    <div class="left-section">
+      <div id="fever-indicator" class="hidden">🔥 FEVER TIME! (5x) 🔥</div>
+      <h1 id="cookie-count">쿠키: 0개</h1>
+      <p id="cps-count">초당 생산량(CPS): 0</p>
+      <div class="cookie-skin-name" id="cookie-skin-name">🍪 클래식 쿠키</div>
+      
+      <div class="cookie-wrapper">
+        <button id="cookie-btn">🍪</button>
+      </div>
+      
+      <div class="fever-gauge-container">
+        <div id="fever-bar"></div>
+      </div>
+      <p class="gauge-label">피버 게이지</p>
+    </div>
+
+    <!-- 중앙: 자동 생산 시설 (신규 아이템 추가) -->
+    <div class="center-section">
+      <h2>🏭 자동 생산 시설</h2>
+      <div class="shop-item">
+        <div><strong>👵 할머니</strong><p>CPS +1 (가격: <span id="cost-grandma">10</span>)</p></div>
+        <button id="buy-grandma">구매 (<span id="count-grandma">0</span>)</button>
+      </div>
+      <div class="shop-item">
+        <div><strong>🏭 쿠키 공장</strong><p>CPS +10 (가격: <span id="cost-factory">100</span>)</p></div>
+        <button id="buy-factory">구매 (<span id="count-factory">0</span>)</button>
+      </div>
+      <div class="shop-item">
+        <div><strong>🚀 쿠키 우주선</strong><p>CPS +50 (가격: <span id="cost-spaceship">500</span>)</p></div>
+        <button id="buy-spaceship">구매 (<span id="count-spaceship">0</span>)</button>
+      </div>
+      <div class="shop-item">
+        <div><strong>🛸 쿠키 외계인</strong><p>CPS +250 (가격: <span id="cost-alien">2,500</span>)</p></div>
+        <button id="buy-alien">구매 (<span id="count-alien">0</span>)</button>
+      </div>
+      <div class="shop-item">
+        <div><strong>🔮 연금술 가마솥</strong><p>CPS +1,200 (가격: <span id="cost-alchemy">10,000</span>)</p></div>
+        <button id="buy-alchemy">구매 (<span id="count-alchemy">0</span>)</button>
+      </div>
+    </div>
+
+    <!-- 오른쪽: 쿠키 외형 업그레이드 & 스킬 -->
+    <div class="right-section">
+      <h2>🎨 쿠키 신제품 개발</h2>
+      <div class="skin-item">
+        <div><strong>🍫 초코칩 쿠키</strong><p>클릭 +20% (가격: <span id="skin-cost-choco">300</span>)</p></div>
+        <button id="buy-skin-choco">개발</button>
+      </div>
+      <div class="skin-item">
+        <div><strong>🍓 딸기 마카롱</strong><p>클릭 +50% (가격: <span id="skin-cost-strawberry">2,000</span>)</p></div>
+        <button id="buy-skin-strawberry">개발</button>
+      </div>
+      <div class="skin-item">
+        <div><strong>🌈 무지개 도넛</strong><p>클릭 +100%, 피버 2배 (가격: <span id="skin-cost-rainbow">15,000</span>)</p></div>
+        <button id="buy-skin-rainbow">개발</button>
+      </div>
+
+      <h2>⚡ 스킬 연구소</h2>
+      <div class="skill-item">
+        <div><strong>🖱️ 강철 손가락</strong><p>기본 클릭 +1 (가격: <span id="cost-clickUpgrade">50</span>)</p></div>
+        <button id="buy-clickUpgrade">강화 (<span id="count-clickUpgrade">0</span>)</button>
+      </div>
+
+      <div class="control-panel">
+        <button id="save-btn">💾 저장</button>
+        <button id="reset-btn">🔄 초기화</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="golden-cookie" class="hidden">✨🍪✨</div>
+  <script src="script.js"></script>
+</body>
+</html>

@@ -105,6 +105,22 @@ body {
   to { transform: scale(1.1); opacity: 1; }
 }
 
+.achievement-banner {
+  margin-top: 15px;
+  background: #f1c40f;
+  color: #2c3e50;
+  font-weight: bold;
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+  from { transform: scale(0); }
+  to { transform: scale(1); }
+}
+
 #golden-cookie {
   position: absolute;
   font-size: 60px;
@@ -118,7 +134,6 @@ body {
 
 .hidden { display: none !important; }
 
-/* 리스트 항목 스타일 */
 .shop-item, .skill-item, .skin-item {
   background: rgba(0, 0, 0, 0.3);
   width: 100%;
@@ -157,3 +172,9 @@ button:disabled { background: #57606f; cursor: not-allowed; opacity: 0.5; }
 }
 
 #reset-btn { background: #ff4757; }
+
+.auto-save-text {
+  font-size: 0.65rem;
+  color: #747d8c;
+  margin-top: 6px;
+}

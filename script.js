@@ -1,5 +1,5 @@
-// --- 게임 상태 데이터 ---
-let state = {
+// --- 게임 초기 상태 ---
+const defaultState = {
   cookies: 0,
   cps: 0,
   baseClickPower: 1,
@@ -19,9 +19,14 @@ let state = {
     choco: { unlocked: false, cost: 300, mult: 1.2, emoji: '🍫', name: '🍫 초코칩 쿠키' },
     strawberry: { unlocked: false, cost: 2000, mult: 1.5, emoji: '🍓', name: '🍓 딸기 마카롱' },
     rainbow: { unlocked: false, cost: 15000, mult: 2.0, emoji: '🌈', name: '🌈 무지개 도넛' }
+  },
+  achievements: {
+    cookie1000: false,
+    item10: false
   }
 };
 
+let state = JSON.parse(JSON.stringify(defaultState));
 let isFever = false;
 const FEVER_THRESHOLD = 50;
 
@@ -33,23 +38,30 @@ const cookieSkinName = document.getElementById('cookie-skin-name');
 const feverBar = document.getElementById('fever-bar');
 const feverIndicator = document.getElementById('fever-indicator');
 const goldenCookie = document.getElementById('golden-cookie');
+const achievementBanner = document.getElementById('achievement-banner');
 
-// --- 사운드 효과 ---
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+// --- 사운드 효과 (안전장치 포함) ---
+let audioCtx = null;
 function playSound(freq, duration = 0.1) {
-  if (audioCtx.state === 'suspended') audioCtx.resume();
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-  gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-  osc.start();
-  osc.stop(audioCtx.currentTime + duration);
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + duration);
+  } catch (e) {
+    // Audio Context 비활성화 환경 예외 처리
+  }
 }
 
-// --- 현재 배율 계산 ---
+// --- 클릭 배율 계산 ---
 function getClickMultiplier() {
   if (state.currentSkin === 'rainbow') return 2.0;
   if (state.currentSkin === 'strawberry') return 1.5;
@@ -57,13 +69,34 @@ function getClickMultiplier() {
   return 1.0;
 }
 
+// --- 업적 체크 ---
+function checkAchievements() {
+  if (!state.achievements.cookie1000 && state.cookies >= 1000) {
+    state.achievements.cookie1000 = true;
+    showAchievement("🏆 첫번째 천국: 쿠키 1,000개 달성!");
+  }
+  
+  const totalItems = Object.values(state.items).reduce((acc, cur) => acc + cur.count, 0);
+  if (!state.achievements.item10 && totalItems >= 10) {
+    state.achievements.item10 = true;
+    showAchievement("🏭 기업가: 시설 10개 이상 보유!");
+  }
+}
+
+function showAchievement(text) {
+  achievementBanner.textContent = text;
+  achievementBanner.classList.remove('hidden');
+  playSound(880, 0.3);
+  setTimeout(() => achievementBanner.classList.add('hidden'), 3000);
+}
+
 // --- UI 업데이트 ---
 function updateUI() {
-  cookieCountEl.textContent = `쿠키: ${Math.floor(state.cookies)}개`;
+  cookieCountEl.textContent = `쿠키: ${Math.floor(state.cookies).toLocaleString()}개`;
   cpsCountEl.textContent = `초당 생산량(CPS): ${state.cps.toLocaleString()}`;
   
   // 피버 바
-  const feverPercent = (state.feverClicks / FEVER_THRESHOLD) * 100;
+  const feverPercent = isFever ? 100 : (state.feverClicks / FEVER_THRESHOLD) * 100;
   feverBar.style.width = `${feverPercent}%`;
 
   // 시설 구매 버튼
@@ -94,6 +127,8 @@ function updateUI() {
       btn.disabled = state.cookies < skin.cost;
     }
   }
+
+  checkAchievements();
 }
 
 // --- 쿠키 클릭 이벤트 ---
@@ -103,7 +138,7 @@ cookieBtn.addEventListener('click', (e) => {
   const earned = Math.round(state.baseClickPower * skinMult * feverMult);
 
   state.cookies += earned;
-  playSound(350 + earned * 5);
+  playSound(350 + earned * 3);
 
   // Floating text
   const el = document.createElement('div');
@@ -115,7 +150,6 @@ cookieBtn.addEventListener('click', (e) => {
   setTimeout(() => el.remove(), 800);
 
   if (!isFever) {
-    // 무지개 도넛일 경우 피버 게이지 2배 가속
     state.feverClicks += (state.currentSkin === 'rainbow') ? 2 : 1;
     if (state.feverClicks >= FEVER_THRESHOLD) triggerFever();
   }
@@ -123,7 +157,7 @@ cookieBtn.addEventListener('click', (e) => {
   updateUI();
 });
 
-// --- 쿠키 외형 스킨 구매 & 장착 ---
+// --- 쿠키 외형 장착/구매 ---
 function handleSkin(key) {
   const skin = state.skins[key];
   if (!skin.unlocked && state.cookies >= skin.cost) {
@@ -143,7 +177,7 @@ document.getElementById('buy-skin-choco').onclick = () => handleSkin('choco');
 document.getElementById('buy-skin-strawberry').onclick = () => handleSkin('strawberry');
 document.getElementById('buy-skin-rainbow').onclick = () => handleSkin('rainbow');
 
-// --- 기존 핸들러들 ---
+// --- 피버 및 상점 ---
 function triggerFever() {
   isFever = true;
   feverIndicator.classList.remove('hidden');
@@ -194,29 +228,49 @@ setInterval(() => {
 }, 12000);
 
 goldenCookie.onclick = () => {
-  state.cookies += Math.max(50, state.cps * 20);
+  const bonus = Math.max(50, state.cps * 20);
+  state.cookies += bonus;
   goldenCookie.classList.add('hidden');
+  playSound(1000, 0.3);
   updateUI();
 };
 
-// 초당 쿠키 루프
+// 초당 쿠키 생산 루프
 setInterval(() => {
   state.cookies += state.cps;
   updateUI();
 }, 1000);
 
-// 저장 및 초기화
+// 데이터 저장 / 불러오기
 const SAVE_KEY = 'cookie_v3_save';
-document.getElementById('save-btn').onclick = () => { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); alert('저장 완료!'); };
-document.getElementById('reset-btn').onclick = () => { localStorage.removeItem(SAVE_KEY); location.reload(); };
 
-// 로드
+function saveGame() {
+  localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+}
+
+document.getElementById('save-btn').onclick = () => { saveGame(); alert('저장되었습니다!'); };
+document.getElementById('reset-btn').onclick = () => { 
+  if (confirm('게임을 완전 초기화할까요?')) {
+    localStorage.removeItem(SAVE_KEY); 
+    location.reload(); 
+  }
+};
+
+// 10초 주기 자동 저장
+setInterval(saveGame, 10000);
+
+// 안정적인 로드 로직
 const saved = localStorage.getItem(SAVE_KEY);
 if (saved) {
-  state = Object.assign(state, JSON.parse(saved));
-  if (state.currentSkin !== 'classic') {
-    cookieBtn.textContent = state.skins[state.currentSkin].emoji;
-    cookieSkinName.textContent = state.skins[state.currentSkin].name;
+  try {
+    const parsed = JSON.parse(saved);
+    state = { ...defaultState, ...parsed };
+    if (state.currentSkin !== 'classic' && state.skins[state.currentSkin]) {
+      cookieBtn.textContent = state.skins[state.currentSkin].emoji;
+      cookieSkinName.textContent = state.skins[state.currentSkin].name;
+    }
+  } catch (e) {
+    console.error('Save load error:', e);
   }
 }
 updateUI();
